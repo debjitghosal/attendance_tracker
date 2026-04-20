@@ -39,7 +39,7 @@ services:
     image: grafana/grafana:latest
     container_name: attendance_grafana
     ports:
-      - "3005:3000" # Maps local 3005 to Grafana's internal 3000
+      - "80:3000" # Maps local 3005 to Grafana's internal 3000
     depends_on:
       - prometheus
 
