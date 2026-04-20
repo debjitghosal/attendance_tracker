@@ -22,9 +22,26 @@ services:
     build: ./frontend
     container_name: attendance_frontend
     ports:
-      - "8081:80" # Maps your computer's port 8080 to Nginx's port 80
+      - "8081:80"
     depends_on:
       - backend
+
+  # NEW: Enterprise Monitoring Tools
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: attendance_prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: attendance_grafana
+    ports:
+      - "3005:3000" # Maps local 3005 to Grafana's internal 3000
+    depends_on:
+      - prometheus
 
 volumes:
   mongo_data:
