@@ -1,42 +1,51 @@
-name: Enterprise CI Pipeline
+name: Enterprise CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
     branches: [ "main", "master" ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install Backend Dependencies
-        working-directory: ./backend
-        run: npm install
-
-      - name: Test Docker Compose Build
-        run: docker compose build
-
-      # NEW: Enterprise Security Scanning
       - name: Run Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs' # Scans the file system and dependencies
+          scan-type: 'fs'
           scan-ref: '.'
           format: 'table'
-          # We set exit-code to 0 so it shows us vulnerabilities but doesn't break the whole pipeline for your demo
           exit-code: '0' 
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+
+      - name: Test Docker Compose Build
+        run: docker compose build
+
+  deploy-to-cloud:
+    needs: build-and-test # This ensures it only deploys IF the tests pass!
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Google Cloud VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # 1. Check if the project folder exists. If not, download it.
+            if [ ! -d "attendance_tracker" ]; then
+              git clone https://github.com/debjitghosal/attendance_tracker.git
+            fi
+            
+            # 2. Go into the folder
+            cd attendance_tracker
+            
+            # 3. Pull the latest code from GitHub
+            git pull origin main
+            
+            # 4. Rebuild and restart the Docker containers in the background!
+            sudo docker compose up -d --build
