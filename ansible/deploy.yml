@@ -1,0 +1,31 @@
+---
+- name: Enterprise Attendance System Deployment
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure Git and Docker are installed
+      apt:
+        pkg:
+          - git
+          - docker.io
+          - docker-compose-v2
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull latest code from GitHub
+      git:
+        repo: 'https://github.com/debjitghosal/attendance_tracker.git'
+        dest: /home/ubuntu/attendance_tracker
+        version: main
+        force: yes
+
+    - name: Spin up Docker Containers
+      command: docker compose up -d --build
+      args:
+        chdir: /home/ubuntu/attendance_tracker
