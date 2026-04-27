@@ -161,3 +161,18 @@ td {
 }
 
 .fw-500 { font-weight: 500; }
+
+.status-badge.absent {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.button-group button {
+  flex: 1;
+}
+
+/* Hover effect for the delete action */
+td button:hover {
+  color: #ef4444 !important;
+  text-decoration: underline;
+}
