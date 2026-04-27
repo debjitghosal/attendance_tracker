@@ -27,12 +27,12 @@ app.get('/api/attendance', async (req, res) => {
     res.json(students);
 });
 
-app.post('/api/attendance', async (req, res) => {
-    const { name, rollNumber, status } = req.body;
-    const student = new Student({ name, rollNumber, status });
-    await student.save();
-    res.status(201).send(student);
-});
+// app.post('/api/attendance', async (req, res) => {
+//     const { name, rollNumber, status } = req.body;
+//     const student = new Student({ name, rollNumber, status });
+//     await student.save();
+//     res.status(201).send(student);
+// });
 
 app.delete('/api/attendance/:id', async (req, res) => {
     await Student.findByIdAndDelete(req.params.id);
