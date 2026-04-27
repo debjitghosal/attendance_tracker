@@ -22,7 +22,7 @@ const studentSchema = new mongoose.Schema({
 const Student = mongoose.model('Student', studentSchema);
 
 // API Routes
-app.get('/api/students', async (req, res) => {
+app.get('/api/attendance', async (req, res) => {
     const students = await Student.find();
     res.json(students);
 });
@@ -32,6 +32,11 @@ app.post('/api/attendance', async (req, res) => {
     const student = new Student({ name, rollNumber, status });
     await student.save();
     res.status(201).send(student);
+});
+
+app.delete('/api/attendance/:id', async (req, res) => {
+    await Student.findByIdAndDelete(req.params.id);
+    res.status(200).send({ message: "Deleted" });
 });
 
 app.get('/health', (req, res) => res.send('OK'));
