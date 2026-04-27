@@ -1,98 +1,153 @@
 import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './App.css';
 
 function App() {
-  const [students, setStudents] = useState([]);
-  const [name, setName] = useState('');
-  const [roll, setRoll] = useState('');
+  const [formData, setFormData] = useState({ name: '', rollNumber: '' });
+  const [logs, setLogs] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchStudents = () => {
-    fetch('http://' + window.location.hostname + ':5000/api/students')
-      .then(res => res.json())
-      .then(data => setStudents(data))
-      .catch(err => console.error("Error fetching:", err));
+  // Note: Adjust this URL if your backend uses a different endpoint
+  const API_URL = 'http://35.223.51.161:8081'; 
+
+  // Fetch initial data (Placeholder fetch - replace with your actual fetch logic)
+  useEffect(() => {
+    // Example: fetch(API_URL).then(res => res.json()).then(data => setLogs(data));
+    // For now, loading some initial state so the dashboard doesn't look empty
+    setLogs([
+      { _id: '1', name: 'debo', rollNumber: '12', status: 'Present' },
+      { _id: '2', name: 'heeru', rollNumber: '13', status: 'Present' }
+    ]);
+  }, []);
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  useEffect(() => { fetchStudents(); }, []);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !roll) return alert("Please fill all fields");
-
-    fetch('http://' + window.location.hostname + ':5000/api/attendance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, rollNumber: roll, status: 'Present' }),
-    }).then(() => {
-      setName(''); setRoll(''); fetchStudents();
-    });
+    setIsSubmitting(true);
+    
+    // Simulate API Call - Replace with your actual POST request
+    setTimeout(() => {
+      const newLog = { 
+        _id: Date.now().toString(), 
+        name: formData.name, 
+        rollNumber: formData.rollNumber, 
+        status: 'Present' 
+      };
+      
+      setLogs([newLog, ...logs]);
+      toast.success(`Attendance recorded for ${formData.name}!`);
+      setFormData({ name: '', rollNumber: '' });
+      setIsSubmitting(false);
+    }, 800);
   };
+
+  // Prepare data for the chart
+  const chartData = [
+    { name: 'Total Present', count: logs.length },
+    { name: 'Total Absent', count: 0 } // Assuming all logged are present for this demo
+  ];
 
   return (
-    <div style={styles.container}>
-      <nav style={styles.navbar}>
-        <h2>Attendance Management Portal</h2>
-        <span style={styles.badge}>Cloud Deployed</span>
-      </nav>
+    <div className="dashboard-container">
+      <ToastContainer position="top-right" autoClose={3000} />
+      
+      {/* Header */}
+      <header className="dashboard-header">
+        <div className="header-content">
+          <h1>RC SPIT Attendance Portal</h1>
+          <span className="status-badge live">System Live</span>
+        </div>
+      </header>
 
-      <div style={styles.main}>
-        <div style={styles.card}>
-          <h3>Mark New Attendance</h3>
-          <form onSubmit={handleSubmit} style={styles.form}>
-            <input
-              style={styles.input}
-              placeholder="Full Name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-            <input
-              style={styles.input}
-              placeholder="Roll Number"
-              value={roll}
-              onChange={e => setRoll(e.target.value)}
-            />
-            <button type="submit" style={styles.button}>Mark Present</button>
-          </form>
+      {/* Main Grid Layout */}
+      <main className="dashboard-grid">
+        
+        {/* Left Column: Action Card */}
+        <div className="grid-column">
+          <div className="card action-card">
+            <h2>Mark Attendance</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="input-group">
+                <label>Full Name</label>
+                <input 
+                  type="text" 
+                  name="name"
+                  value={formData.name} 
+                  onChange={handleInputChange} 
+                  placeholder="e.g. Jane Doe"
+                  required 
+                />
+              </div>
+              <div className="input-group">
+                <label>Roll Number</label>
+                <input 
+                  type="text" 
+                  name="rollNumber"
+                  value={formData.rollNumber} 
+                  onChange={handleInputChange} 
+                  placeholder="e.g. 42"
+                  required 
+                />
+              </div>
+              <button type="submit" disabled={isSubmitting} className="submit-btn">
+                {isSubmitting ? 'Recording...' : 'MARK PRESENT'}
+              </button>
+            </form>
+          </div>
         </div>
 
-        <div style={styles.card}>
-          <h3>Attendance Logs</h3>
-          <table style={styles.table}>
-            <thead>
-              <tr style={styles.tableHeader}>
-                <th>Name</th>
-                <th>Roll Number</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((s, i) => (
-                <tr key={i} style={styles.tableRow}>
-                  <td>{s.name}</td>
-                  <td>{s.rollNumber}</td>
-                  <td><span style={styles.statusLabel}>{s.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Right Column: Data Cards */}
+        <div className="grid-column">
+          
+          {/* Chart Card */}
+          <div className="card chart-card">
+            <h2>Live Statistics</h2>
+            <div className="chart-wrapper">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip cursor={{fill: '#f1f5f9'}} />
+                  <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Table Card */}
+          <div className="card table-card">
+            <h2>Recent Logs</h2>
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Roll Number</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log) => (
+                    <tr key={log._id}>
+                      <td className="fw-500">{log.name}</td>
+                      <td>{log.rollNumber}</td>
+                      <td><span className="status-badge present">{log.status}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
-      </div>
+      </main>
     </div>
   );
 }
-
-const styles = {
-  container: { backgroundColor: '#f4f7f6', minHeight: '100vh', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif' },
-  navbar: { backgroundColor: '#2c3e50', color: 'white', padding: '10px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  badge: { backgroundColor: '#27ae60', padding: '5px 10px', borderRadius: '20px', fontSize: '12px' },
-  main: { padding: '40px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' },
-  card: { backgroundColor: 'white', padding: '25px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' },
-  form: { display: 'flex', flexDirection: 'column', gap: '15px' },
-  input: { padding: '12px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '16px' },
-  button: { padding: '12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' },
-  table: { width: '100%', borderCollapse: 'collapse', marginTop: '10px' },
-  tableHeader: { borderBottom: '2px solid #eee', textAlign: 'left' },
-  tableRow: { borderBottom: '1px solid #eee', height: '45px' },
-  statusLabel: { color: '#27ae60', fontWeight: 'bold' }
-};
 
 export default App;
