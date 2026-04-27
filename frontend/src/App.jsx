@@ -10,7 +10,7 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // UPDATE THIS TO YOUR CURRENT LIVE IP
-  const API_URL = 'http://35.223.51.161:8081/api/attendance'; 
+  const API_URL = 'http://35.223.51.161:5000/api/attendance'; 
 
   // Fetching logs from the backend
   const fetchLogs = async () => {
