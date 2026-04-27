@@ -96,6 +96,7 @@ body {
   font-size: 0.95rem;
   transition: all 0.2s;
   background-color: #F8FAFC;
+  color: #1E293B; /* ADD THIS LINE to make text dark and visible */
 }
 
 .input-group input:focus {
