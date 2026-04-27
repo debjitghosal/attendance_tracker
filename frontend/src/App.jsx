@@ -91,7 +91,7 @@ function App() {
       
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>SPIT Attendance Portal</h1>
+          <h1> Attendance Portal</h1>
           <span className="status-badge live">System Active</span>
         </div>
       </header>
